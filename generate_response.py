@@ -23,8 +23,8 @@ def reciprocal_rank_fusion(results: list[list], k=60):
     """
     Reciprocal_rank_fusion that takes multiple lists of ranked documents
     and an optional parameter k used in the RRF formula
+    https://github.com/langchain-ai/langchain/blob/master/cookbook/rag_fusion.ipynb?ref=blog.langchain.dev
     """
-
     # Initialize a dictionary to hold fused scores for each unique document
     fused_scores = {}
 
