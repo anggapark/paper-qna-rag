@@ -1,22 +1,25 @@
-import re
-import os
+import argparse
 from dotenv import load_dotenv
-from collections import Counter
 from operator import itemgetter
 
 from langchain import hub
 from langchain.load import dumps, loads
-from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from indexing import indexing
 
 CHROMA_PATH = "chromadb"
+
+
+def get_question():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("query", type=str, help="Question query text")
+    args = parser.parse_args()
+
+    return args.query
 
 
 def reciprocal_rank_fusion(results: list[list], k=60):
@@ -67,27 +70,49 @@ def retrieve_documents():
 
 
 def query_expansion(llm, question):
+    # template = """
+    # You are a helpful assistant that generates multiple search queries based on a single input query. \n
+    # Generate multiple search queries related to: {question} \n
+    # Output (4 queries):
+    # """
+
     template = """
-    You are a helpful assistant that generates multiple search queries based on a single input query. \n
-    Generate multiple search queries related to: {question} \n
-    Output (4 queries):
+    You are an expert research assistant specialized in generating comprehensive and semantically 
+    diverse search queries for machine learning and deep learning research literature. \n
+
+    Given the input query: "{question}" \n
+    
+    Generate 5 distinct queries that: \n
+    1. Capture different semantic angles of the original query \n
+    2. Explore various levels of specificity and abstraction \n
+    3. Consider alternative phrasings and technical terminologies \n
+    4. Aim to uncover both broad and narrow contextual information \n
+    
+    Constraints:
+    - Ensure queries are academically rigorous \n
+    - Use precise technical language \n
+    - Cover different perspectives of the research topic \n
+    - Avoid redundant queries \n
     """
     prompt_perspectives = ChatPromptTemplate.from_template(template)
 
     retriever = retrieve_documents()
 
-    generate_queries = (
-        prompt_perspectives | llm | StrOutputParser() | (lambda x: x.split("\n"))
+    retrieval_chain = (
+        prompt_perspectives
+        | llm
+        | StrOutputParser()
+        | (lambda x: x.split("\n"))
+        | retriever.map()
+        | reciprocal_rank_fusion
     )
 
-    # question = "What is the best algorithm to use if I have to work on text data?"
-
-    retrieval_chain = generate_queries | retriever.map() | reciprocal_rank_fusion
-    # expanded_queries = retrieval_chain.invoke({"question": question})
     return retrieval_chain
 
 
-def main(question):
+def answer():
+    question = get_question()
+
     llm = llm_model()
     template = """
     Answer the following question based on this context. 
@@ -114,6 +139,4 @@ def main(question):
 
 
 if __name__ == "__main__":
-    main(
-        "What is the meaning of Shifting value creation of machine learning and what is the cause of it?"
-    )
+    answer()
