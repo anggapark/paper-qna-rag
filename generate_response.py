@@ -12,14 +12,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from indexing import indexing
 
 CHROMA_PATH = "chromadb"
-
-
-def get_question():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("query", type=str, help="Question query text")
-    args = parser.parse_args()
-
-    return args.query
+DOCUMENTS_PATH = "data"
 
 
 def reciprocal_rank_fusion(results: list[list], k=60):
@@ -63,13 +56,13 @@ def llm_model():
     return llm
 
 
-def retrieve_documents():
-    vector_store = indexing()
+def retrieve_documents(path):
+    vector_store = indexing(path)
 
     return vector_store.as_retriever()
 
 
-def query_expansion(llm, question):
+def query_expansion(path, llm, question):
     # template = """
     # You are a helpful assistant that generates multiple search queries based on a single input query. \n
     # Generate multiple search queries related to: {question} \n
@@ -96,7 +89,7 @@ def query_expansion(llm, question):
     """
     prompt_perspectives = ChatPromptTemplate.from_template(template)
 
-    retriever = retrieve_documents()
+    retriever = retrieve_documents(path)
 
     retrieval_chain = (
         prompt_perspectives
@@ -110,8 +103,7 @@ def query_expansion(llm, question):
     return retrieval_chain
 
 
-def answer():
-    question = get_question()
+def answer(path, question):
 
     llm = llm_model()
     template = """
@@ -124,7 +116,7 @@ def answer():
     prompt = ChatPromptTemplate.from_template(template)
     # prompt = hub.pull("rlm/rag-prompt")
 
-    retrieval_chain = query_expansion(llm, question)
+    retrieval_chain = query_expansion(path, llm, question)
 
     rag_chain = (
         {"context": retrieval_chain, "question": itemgetter("question")}
@@ -135,8 +127,22 @@ def answer():
 
     # question
     response = rag_chain.invoke({"question": question})
+    # print(response)
+    return response
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("query", type=str, help="Question query text")
+    parser.add_argument("--docs", "-d", type=str, help="Documents path")
+    args = parser.parse_args()
+
+    question = args.query
+    docs_path = args.docs
+
+    response = answer(path=docs_path, question=question)
     print(response)
 
 
 if __name__ == "__main__":
-    answer()
+    main()
