@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain.load import dumps, loads
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, PyPDFDirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -9,11 +9,11 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 load_dotenv()
 
 CHROMA_PATH = "chromadb"
-DOCUMENTS_PATH = "data/Shifting ML value creation mechanisms A process model of ML value creation.pdf"
+DOCUMENTS_PATH = "data"
 
 
 def load_documents(path):
-    reader = PyPDFLoader(file_path=path)
+    reader = PyPDFDirectoryLoader(path=path)
     docs = reader.load()
 
     return docs
@@ -40,8 +40,8 @@ def store_documents(chunks):
     return vector_store
 
 
-def indexing():
-    docs = load_documents(path=DOCUMENTS_PATH)
+def indexing(path):
+    docs = load_documents(path)
     chunks = split_documents(docs)
     vector_store = store_documents(chunks)
 
@@ -49,4 +49,4 @@ def indexing():
 
 
 if __name__ == "__main__":
-    indexing()
+    indexing(path=DOCUMENTS_PATH)
