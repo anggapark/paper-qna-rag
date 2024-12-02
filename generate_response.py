@@ -4,7 +4,6 @@ from operator import itemgetter
 
 from langchain import hub
 from langchain.load import dumps, loads
-from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
