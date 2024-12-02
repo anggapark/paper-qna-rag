@@ -11,6 +11,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from indexing import indexing
 
+load_dotenv()
+
 CHROMA_PATH = "chromadb"
 DOCUMENTS_PATH = "data"
 
@@ -62,7 +64,7 @@ def retrieve_documents(path):
     return vector_store.as_retriever()
 
 
-def query_expansion(path, llm, question):
+def query_expansion(llm, question, retriever):
     # template = """
     # You are a helpful assistant that generates multiple search queries based on a single input query. \n
     # Generate multiple search queries related to: {question} \n
@@ -75,7 +77,7 @@ def query_expansion(path, llm, question):
 
     Given the input query: "{question}" \n
     
-    Generate 5 distinct queries that: \n
+    Generate 5 distinct search queries that: \n
     1. Capture different semantic angles of the original query \n
     2. Explore various levels of specificity and abstraction \n
     3. Consider alternative phrasings and technical terminologies \n
@@ -89,7 +91,7 @@ def query_expansion(path, llm, question):
     """
     prompt_perspectives = ChatPromptTemplate.from_template(template)
 
-    retriever = retrieve_documents(path)
+    # retriever = retrieve_documents(path)
 
     retrieval_chain = (
         prompt_perspectives
@@ -103,7 +105,7 @@ def query_expansion(path, llm, question):
     return retrieval_chain
 
 
-def answer(path, question):
+def answer(retriever, question):
 
     llm = llm_model()
     template = """
@@ -116,7 +118,7 @@ def answer(path, question):
     prompt = ChatPromptTemplate.from_template(template)
     # prompt = hub.pull("rlm/rag-prompt")
 
-    retrieval_chain = query_expansion(path, llm, question)
+    retrieval_chain = query_expansion(llm, question, retriever)
 
     rag_chain = (
         {"context": retrieval_chain, "question": itemgetter("question")}
@@ -140,7 +142,8 @@ def main():
     question = args.query
     docs_path = args.docs
 
-    response = answer(path=docs_path, question=question)
+    retriever = retrieve_documents(docs_path)
+    response = answer(question=question, retriever=retriever)
     print(response)
 
 
