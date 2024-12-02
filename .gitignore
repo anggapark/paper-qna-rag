@@ -3,3 +3,9 @@ chromadb
 
 .ipynb_checkpoints
 __pycache__
+
+# ignore everything in the following folders
+data/**
+
+# except their sub-folders
+!data/**/
