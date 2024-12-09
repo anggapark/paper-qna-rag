@@ -9,3 +9,5 @@ data/**
 
 # except their sub-folders
 !data/**/.gitkeep
+
+answer.txt
