@@ -6,13 +6,13 @@ RAG project a QnA system for machine learning research papers in PDF
 
 1. Create .env file
 
-   ```
+   ```bash
    touch .env
    ```
 
 2. Insert necessary values in .env file
 
-   ```
+   ```bash
    GOOGLE_API_KEY=
    LANGCHAIN_API_KEY=
    LANGCHAIN_TRACING_V2=true
@@ -22,25 +22,21 @@ RAG project a QnA system for machine learning research papers in PDF
 
 3. Run the program, you can choose run method:
 
-   ### CLI
+   a. CLI
 
-   ```
+   ```bash
    python generate_response.py -d data "your_query"
    ```
 
    Note: </br>
    -d or --data for directory where you put your PDF file/s
 
-   ### GUI Streamlit
+   b. GUI Streamlit
 
-   1. Run Streamlit Application
+   ```bash
+   # Run Streamlit Application
+   streamlit run app.py
 
-      ```
-      streamlit run app.py
-      ```
-
-   2. To open Streamlit GUI, visit this link in browser
-
-      ```
-      http://localhost:8501/
-      ```
+   # To open Streamlit GUI, visit this link in browser
+   http://localhost:8501/
+   ```
